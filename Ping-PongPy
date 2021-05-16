@@ -1,0 +1,156 @@
+
+from pygame import *
+from random import randint
+
+WIDTH = 1000
+HEIGHT = 700
+luz = 0
+strik = 0
+
+class GameSprite(sprite.Sprite):
+ #конструктор класса
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speedX, player_speedY):
+       #Вызываем конструктор класса (Sprite):
+        sprite.Sprite.__init__(self)
+ 
+       #каждый спрайт должен хранить свойство image - изображение
+        self.image = transform.scale(image.load(player_image), (size_x, size_y))
+        self.speedX = player_speedX
+        self.speedY = player_speedY
+ 
+       #каждый спрайт должен хранить свойство rect - прямоугольник, в который он вписан
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+        self.sizex = size_x
+        self.sizey = size_y
+        
+    def reset(self):
+        win.blit(self.image, (self.rect.x, self.rect.y))
+
+class Player(GameSprite):
+    def updateL(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[K_w] and self.rect.y > 0:
+            self.rect.y -= self.speedY
+        #if keys_pressed[K_a] and self.rect.x > 10:
+        #    self.rect.x -= self.speed
+        if keys_pressed[K_s] and self.rect.y < (HEIGHT - self.sizey):
+            self.rect.y += self.speedY
+        #if keys_pressed[K_d] and self.rect.x < (WIDTH - self.sizex - 10): 
+        #    self.rect.x += self.speed
+
+    def updateR(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[K_UP] and self.rect.y > 0:
+            self.rect.y -= self.speedY
+        #if keys_pressed[K_a] and self.rect.x > 10:
+        #    self.rect.x -= self.speed
+        if keys_pressed[K_DOWN] and self.rect.y < (HEIGHT - self.sizey):
+            self.rect.y += self.speedY
+        #if keys_pressed[K_d] and self.rect.x < (WIDTH - self.sizex - 10): 
+        #    self.rect.x += self.speed
+        
+    # def fire(self):
+    #     bullet = Bullets('bullet.png', self.rect.centerx, self.rect.top, 10, 10, 5)
+    #     bullets.add(bullet)
+
+# class Bullets(GameSprite):
+#     def update(self):
+#         self.rect.y -= self.speed
+#         if self.rect.y < 0:
+#             self.kill()
+
+# class Enemy(GameSprite):
+#     def update(self):
+#         self.rect.y += self.speedY
+#         self.rect.x += self.speedX
+#         global luz
+#         if self.rect.y >= 700:
+#             self.rect.x = randint(0, 850)
+#             self.rect.y = randint(-450, 0)
+#             luz = luz+1
+
+
+win = display.set_mode((WIDTH, HEIGHT))
+display.set_caption('ДОГЕ ВОЮЕТ В КОСМОСЕ')
+bg = transform.scale(image.load('galaxy.jpg'), (WIDTH, HEIGHT))
+tarasi = sprite.Group()
+gadi = sprite.Group()
+bullets = sprite.Group()
+
+speed_x_e = 3
+speed_y_e = 3
+
+en_x = 490
+en_y = 390
+
+gad = GameSprite('asteroid.png', en_x, en_y, 20, 20, speed_x_e, speed_y_e)
+    
+
+mixer.init()
+mixer.music.load('nyan.mp3')
+mixer.music.play()
+font.init()
+font = font.SysFont('Arial', 50)
+proigrish = font.render('Ты проиграл(а), нажми r, чтобы начать заново', True, (250, 0, 0))
+pobeda = font.render('Ты, победил(а), нажми r, чтобы начать заново', True, (0, 250, 0))
+
+chims = Player('Red.png', 10, 600, 20, 100, 0, 10)
+chims2 = Player('Blue.png', 980, 600, 20, 100, 0, 10)
+
+finish = False
+game = True
+while game:
+    keys_pressed = key.get_pressed()
+    text1 = font.render('Счет:' + str(strik), True, (0, 200, 0))
+    text2 = font.render('Пропущена: ' + str(luz), True, (0, 200, 0))
+
+    gad.rect.x += speed_x_e
+    gad.rect.y += speed_y_e
+
+    if keys_pressed[K_r] and finish:
+            finish = False
+            strik = 0
+            luz = 0
+            for b in gadi:
+                b.kill()
+            for i in range(5):
+                gad = Enemy('ufo.png', randint(0, 850), randint(-450, 0), 100, 100, 2, 2)
+                gadi.add(gad)
+
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+        elif e.type == KEYDOWN:
+            if e.key == K_SPACE:
+                chims.fire()
+    
+    if finish != True:
+          
+        win.blit(bg, (0, 0))
+        chims.updateL()
+        chims.reset()
+        chims2.updateR()
+        chims2.reset()
+        # bullets.draw(win)
+        # bullets.update()
+        gad.reset()
+        win.blit(text1, (0, 0))
+        win.blit(text2, (0, 50))
+        # collides = sprite.groupcollide(gadi, bullets, True, True)
+        # for c in collides:
+        #     strik = strik + 1
+        #     gad = Enemy('ufo.png', randint(0, 850), randint(-450, 0), 100, 100, 2)
+        #     gadi.add(gad)
+        if sprite.collide_rect(chims, gad) or sprite.collide_rect(chims2, gad):
+            speed_x_e *= -1
+            speed_y_e *= -1
+        # if strik >= 100:
+        #     win.blit(pobeda, (50, 300))
+        #     finish = True
+
+        
+        
+    
+    display.update()
